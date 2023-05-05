@@ -1,4 +1,4 @@
-from venv.grid import Grid
+from grid import Grid
 from player import Player
 from turn import Turn
 
@@ -12,7 +12,6 @@ class Game(object):
         self.player_1 = Player(1)
         self.player_2 = Player(2)
         self.grid.render()
-        self.run()
 
     def run(self):
         current_turn = 1

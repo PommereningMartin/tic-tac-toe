@@ -1,4 +1,4 @@
-from venv.grid import Grid
+from grid import Grid
 
 
 class Turn(object):
