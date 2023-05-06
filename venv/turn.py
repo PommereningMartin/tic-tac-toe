@@ -13,12 +13,6 @@ class Turn(object):
         self.grid = None
         self.current_player = None
 
-    def input(self, position: str):
-        pass
-
-    def is_not_valid(self):
-        pass
-
     def make(self, player: Player, state: Grid):
         if self.turn_number is None:
             self.turn_number = 1
@@ -29,24 +23,40 @@ class Turn(object):
             self.player_input(player, True)
         self.update_grid(player, state)
 
+
     @staticmethod
     def player_input(player: Player, *retry: bool) -> Player:
-        if retry:
+        if retry is True:
             print('{0} pls enter another cords:'.format(player.name))
         print('{0} pls enter cords:'.format(player.name))
         player.input = tuple(map(int, input().split(',')))
         return player
 
     @staticmethod
-    def update_grid(player, state):
+    def update_grid(player: Player, grid: Grid):
         x, y = player.input
-        state[x][y] = player.symbol
+        grid[x][y] = player.symbol
 
     @staticmethod
-    def not_update_grid(player: Player, state: Grid) -> bool:
+    def not_update_grid(player: Player, grid: Grid) -> bool:
         x, y = player.input
-        if state[x][y] == state.default_char:
+        if grid[x][y] == grid.default_char:
             return False
-        if state[x][y] != 'x' or state[x][y] != 'o':
+        if grid[x][y] != 'x' or grid[x][y] != 'o':
             return False
         return True
+
+    def check_win_or_draw(self):
+        row_count_x = 0
+        row_count_o = 0
+        for row in self.grid[1:]:
+            print(row)
+            row_count_x = row.count("x")
+            row_count_o = row.count('o')
+        print(row_count_x)
+        print(row_count_o)
+        if row_count_x == 3:
+            print("Player 1 wins")
+        if row_count_o == 3:
+            print("Player 2 wins")
+

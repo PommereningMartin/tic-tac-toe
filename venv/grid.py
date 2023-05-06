@@ -2,7 +2,6 @@ from typing import List
 
 
 class Grid(List):
-    grid = None
     default_char = 0
 
     def __init__(self, height, width):
@@ -12,16 +11,11 @@ class Grid(List):
         self.init_grid(height, width)
 
     def init_grid(self, height, width):
-        rows, cols = height + 1, width + 1
+        rows, cols = height, width
         for i in range(rows):
             col = []
             for j in range(cols):
-                if i == 0:
-                    col.append(j)
-                else:
-                    col.append(self.default_char)
-                if j == 0:
-                    col[0] = i
+                col.append(self.default_char)
             self.append(col)
 
     def render(self):
