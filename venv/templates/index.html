@@ -1,0 +1,33 @@
+<html>
+<head>
+    <title>TicTacToe-Python-Flask</title>
+    <script>
+        function startGame(){
+            const a = prompt('Pls enter Player1 name: ')
+            const b = prompt('Pls enter Player2 name:')
+            const current = Math.floor(Math.random() * 2)+1
+            console.log(current)
+            fetch('http://127.0.0.1:5000/startGame', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ "player1Name": a, "player2Name":b, "currentPlayer": current }),
+            }).then(response => {
+                if (response.redirected) {
+                    window.location = response.url
+                } else {
+                    console.log(response)
+                }
+            })
+        }
+    </script>
+</head>
+<body>
+<h1>Welcome to TicTacToe-Python-Flask</h1>
+<div id="welcome">
+    <button id="start" onclick="startGame()">Start a new Game</button>
+</div>
+</body>
+</html>
