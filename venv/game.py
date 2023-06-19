@@ -25,15 +25,20 @@ class Game(object):
             turn = Turn()
             turn.make(self.player_1, self.grid)
             turn.update_grid(self.player_1, self.grid)
+            self.grid.render()
             # turn.check_win_or_draw()
             turn.make(self.player_2, self.grid)
             turn.update_grid(self.player_2, self.grid)
-            # turn.check_win_or_draw()
             self.grid.render()
+            # turn.check_win_or_draw()
             self.turn_history.append(turn)
-            current_turn += 1
+            current_turn = current_turn + 1
             if current_turn > 9:
                 exit()
             # print(self.turn_history)
 
-Game().run()
+    def get_state(self) -> dict:
+        return dict(player1Name=self.player_1.name, player2Name=self.player_2.name,
+                    grid=self.grid, currentPlayer=self.current_player)
+
+# Game().run()

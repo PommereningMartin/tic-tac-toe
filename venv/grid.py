@@ -2,7 +2,7 @@ from typing import List
 
 
 class Grid(List):
-    default_char = 0
+    default_char = ' '
 
     def __init__(self, height, width):
         super().__init__()
@@ -15,7 +15,7 @@ class Grid(List):
         for i in range(rows):
             col = []
             for j in range(cols):
-                col.append(self.default_char)
+                col.append(dict(value=self.default_char, isEnabled=True))
             self.append(col)
 
     def render(self):
