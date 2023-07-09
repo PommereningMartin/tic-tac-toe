@@ -2,18 +2,15 @@
 <head>
     <title>TicTacToe-Python-Flask</title>
     <script>
+
         function startGame(){
-            const a = prompt('Pls enter Player1 name: ')
-            const b = prompt('Pls enter Player2 name:')
-            const current = Math.floor(Math.random() * 2)+1
-            console.log(current)
             fetch('http://127.0.0.1:5000/startGame', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ "player1Name": a, "player2Name":b, "currentPlayer": current }),
+                body: JSON.stringify({ "player1Name": "foo"}),
             }).then(response => {
                 if (response.redirected) {
                     window.location = response.url
@@ -22,6 +19,7 @@
                 }
             })
         }
+
     </script>
 </head>
 <body>

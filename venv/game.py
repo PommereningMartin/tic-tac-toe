@@ -1,18 +1,22 @@
-from grid import Grid
+from board import Board
 from player import Player
 from turn import Turn
+import uuid
+
+from random_bot import RandomBot
 
 
 class Game(object):
 
-    def __init__(self):
+    def __init__(self, id: uuid):
+        self.id = id
         self.turn_history = []
-        self.current_player = None
-        self.grid = Grid(3, 3)
-        # TODO: make x and o
+        self.current_player: Player = None
+        self.board = Board(3, 3, 3)
         self.player_1 = Player(1, 'x')
-        self.player_2 = Player(2, 'o')
-        self.grid.render()
+        self.bot = RandomBot(2, 'o')
+        self.winner = None
+        #self.grid.render()
 
     # TODO:
     #  input validation,
@@ -23,13 +27,13 @@ class Game(object):
         current_turn = 1
         while True:
             turn = Turn()
-            turn.make(self.player_1, self.grid)
-            turn.update_grid(self.player_1, self.grid)
-            self.grid.render()
+            turn.make(self.player_1, self.board)
+            turn.update_grid(self.player_1, self.board)
+            self.board.render()
             # turn.check_win_or_draw()
-            turn.make(self.player_2, self.grid)
-            turn.update_grid(self.player_2, self.grid)
-            self.grid.render()
+            turn.make(self.bot, self.board)
+            turn.update_grid(self.bot, self.board)
+            self.board.render()
             # turn.check_win_or_draw()
             self.turn_history.append(turn)
             current_turn = current_turn + 1
@@ -38,7 +42,8 @@ class Game(object):
             # print(self.turn_history)
 
     def get_state(self) -> dict:
-        return dict(player1Name=self.player_1.name, player2Name=self.player_2.name,
-                    grid=self.grid, currentPlayer=self.current_player)
+        #print('get_state',self.current_player.name)
+        return dict(player1Name=self.player_1.name, player2Name=self.bot.name,
+                    grid=self.board, currentPlayer=self.current_player, gameId=self.id)
 
 # Game().run()
