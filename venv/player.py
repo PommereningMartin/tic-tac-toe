@@ -7,6 +7,7 @@ class Player(object):
         self.symbol = symbol
         self.input = None
         self.name = None
+        self.id = player_number
         #self.ask_name(player_number)
 
     def ask_name(self, number: int) -> None:

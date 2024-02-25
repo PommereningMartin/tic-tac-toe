@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from grid import Grid
+from board import Board
 from player import Player
 
 
@@ -13,7 +13,7 @@ class Turn(object):
         self.grid = None
         self.current_player = None
 
-    def make(self, player: Player, state: Grid):
+    def make(self, player: Player, state: Board):
         if self.turn_number is None:
             self.turn_number = 1
         else:
@@ -33,12 +33,12 @@ class Turn(object):
         return player
 
     @staticmethod
-    def update_grid(player: Player, grid: Grid):
+    def update_grid(player: Player, grid: Board):
         x, y = player.input
         grid[x][y] = player.symbol
 
     @staticmethod
-    def not_update_grid(player: Player, grid: Grid) -> bool:
+    def not_update_grid(player: Player, grid: Board) -> bool:
         x, y = player.input
         if grid[x][y] == grid.default_char:
             return False
