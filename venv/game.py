@@ -1,3 +1,5 @@
+import random
+
 from grid import Grid
 from player import Player
 from turn import Turn
@@ -6,8 +8,9 @@ from turn import Turn
 class Game(object):
 
     def __init__(self):
+        self.id: int = random.randint(1, 10)
         self.turn_history = []
-        self.current_player = None
+        self.current_player: Player = None
         self.grid = Grid(3, 3)
         # TODO: make x and o
         self.player_1 = Player(1, 'x')
@@ -39,6 +42,6 @@ class Game(object):
 
     def get_state(self) -> dict:
         return dict(player1Name=self.player_1.name, player2Name=self.player_2.name,
-                    grid=self.grid, currentPlayer=self.current_player)
+                    grid=self.grid, currentPlayer=self.current_player, currentPlayerName=self.current_player.name)
 
 # Game().run()

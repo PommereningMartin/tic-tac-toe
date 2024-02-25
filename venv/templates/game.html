@@ -42,16 +42,31 @@
             $( "#playground" ).load(window.location.href + " #playground" );
         }
 
+        function reset() {
+            fetch('http://127.0.0.1:5000/reset', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            }).then(async response => {
+                console.log(JSON.stringify(response));
+                await updateDiv(undefined);
+            })
+        }
+
     </script>
 </head>
 <body>
 <h1>Lets Play TicTacToe</h1>
 <br>
-<h1>Player1: {{game['player1Name']}}</h1>
-<h1>Player2: {{game['player2Name']}}</h1>
+<h1>Player1: {{ game['player1Name'] }}</h1>
+<h1>Player2: {{ game['player2Name'] }}</h1>
+<button onclick="reset()">New Game</button>
 <div class="main">
     <div id="playground">
-        <h1>current player: {{game['currentPlayer']}}</h1>
+        <h1>current player: {{ game['currentPlayerName'] }}</h1>
+        {{ game['grid'] }}
         {% for row in game['grid'] %}
         {% set rowIndex = loop.index -1 %}
         <p>
