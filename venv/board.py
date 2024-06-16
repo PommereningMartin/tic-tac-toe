@@ -1,3 +1,4 @@
+import random
 from typing import List
 
 
@@ -11,8 +12,10 @@ class Board(List):
         self.dimension = dimension
         self.moves = []
         self.init_grid(height, width)
+        self.id = random.randint(0, 1000)
 
     def init_grid(self, height, width):
+        print('running init grid')
         rows, cols = height, width
         for i in range(rows):
             col = []
@@ -51,7 +54,7 @@ class Board(List):
         # need at least 5 moves before x hits three in a row
         if len(self.moves) < 5:
             print('moves', self.moves)
-            return None
+            #return None
 
         # check rows for win
         for row in range(self.dimension):
@@ -100,3 +103,8 @@ class Board(List):
 
         # found no winner, return None
         return None
+
+    def disable_all_fields(self):
+        for row in self:
+            for field in row:
+                field['isEnabled'] = False

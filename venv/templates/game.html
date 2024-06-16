@@ -5,6 +5,7 @@
         button {
             width: 50px;
             height: 50px;
+            margin: 5px;
         }
         p {
             display: flex;
@@ -18,19 +19,23 @@
     </style>
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script>
-        function setSomething(id){
+
+    function setSomething(id, gameId){
             document.getElementById(id).disabled = true;
+            console.log('setSomething', gameId)
             fetch('http://127.0.0.1:5000/setSomething', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ "field": id })
+                body: JSON.stringify({ "field": id, "gameId": gameId })
             })
                 .then(response => response.json())
                 .then(async response => {
-                    console.log(JSON.stringify(response));
+                    console.log('setSomething response:',JSON.stringify(response['grid']));
+                    console.log('setSomething response:',JSON.stringify(response['winner']));
+                    //await getHistory();
                     await updateDiv(id);
                 })
 
@@ -42,13 +47,21 @@
             $( "#playground" ).load(window.location.href + " #playground" );
         }
 
-        function reset() {
+        async function getHistory() {
+            await fetch('http://127.0.0.1:5000/gameHistory').then(response => {
+                console.log('getHistory response:',JSON.stringify(response));
+            })
+        }
+
+        function reset(gameId) {
+            const current = Math.floor(Math.random() * 2)+1
             fetch('http://127.0.0.1:5000/reset', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({ "gameId": gameId, "currentPlayer": current })
             }).then(async response => {
                 console.log(JSON.stringify(response));
                 await updateDiv(undefined);
@@ -60,12 +73,16 @@
 <body>
 <h1>Lets Play TicTacToe</h1>
 <br>
-<h1>Player1: {{ game['player1Name'] }}</h1>
-<h1>Player2: {{ game['player2Name'] }}</h1>
-<button onclick="reset()">New Game</button>
+<h1>Player1: {{ game['player1Name'] }}, Symbol: {{game['player1Symbol']}}</h1>
+<h1>Player2: {{ game['player2Name'] }}, Symbol: {{game['player2Symbol']}}</h1>
+{% set gameId = game['id'] %}
+<button name="{{gameId}}" onclick="reset(this.name)">Reset Grid</button>
 <div class="main">
     <div id="playground">
         <h1>current player: {{ game['currentPlayerName'] }}</h1>
+        <h1>gameId: {{ game['id'] }}</h1>
+        <h1>winner: {{ game['winner'] }}</h1>
+        {% set foo = game['id'] %}
         {{ game['grid'] }}
         {% for row in game['grid'] %}
         {% set rowIndex = loop.index -1 %}
@@ -74,9 +91,10 @@
             {% set colIndex = loop.index -1 %}
             {% set id = rowIndex,colIndex %}
                 {% if col.isEnabled %}
-                    <button id="{{id}}" onclick="setSomething(this.id)">{{col['value']}}</button>
+                    <button name="{{gameId}}" id="{{id}}" onclick="setSomething(this.id, this.name)">{{col['value']}}</button>
                 {% else %}
-                    <button id={{rowIndex,colIndex}} onclick="setSomething(this.id)" disabled>{{col['value']}}</button>
+                    <button disabled name="{{gameId}}" id={{rowIndex,colIndex}}
+                            onclick="setSomething(this.id, this.name)">{{col['value']}}</button>
                 {% endif %}
             {% endfor %}
         </p>
