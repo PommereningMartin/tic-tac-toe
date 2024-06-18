@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>Flask Tutorial</title>
+    <title>TicTacToe-Python-Flask</title>
     <style>
         button {
             width: 50px;
@@ -20,21 +20,21 @@
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script>
 
-    function setSomething(id, gameId){
+    function makeTurn(id, gameId){
             document.getElementById(id).disabled = true;
-            console.log('setSomething', gameId)
-            fetch('http://127.0.0.1:5000/setSomething', {
+            console.log('make_turn', gameId)
+            fetch('http://127.0.0.1:5000/makeTurn', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ "field": id, "gameId": gameId })
+                body: JSON.stringify({ "field": id, "gameId": parseInt(gameId) })
             })
                 .then(response => response.json())
                 .then(async response => {
-                    console.log('setSomething response:',JSON.stringify(response['grid']));
-                    console.log('setSomething response:',JSON.stringify(response['winner']));
+                    console.log('make_turn response:',JSON.stringify(response['grid']));
+                    console.log('make_turn response:',JSON.stringify(response['winner']));
                     //await getHistory();
                     await updateDiv(id);
                 })
@@ -61,7 +61,7 @@
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ "gameId": gameId, "currentPlayer": current })
+                body: JSON.stringify({ "gameId": parseInt(gameId), "currentPlayer": current })
             }).then(async response => {
                 console.log(JSON.stringify(response));
                 await updateDiv(undefined);
@@ -91,10 +91,10 @@
             {% set colIndex = loop.index -1 %}
             {% set id = rowIndex,colIndex %}
                 {% if col.isEnabled %}
-                    <button name="{{gameId}}" id="{{id}}" onclick="setSomething(this.id, this.name)">{{col['value']}}</button>
+                    <button name="{{gameId}}" id="{{id}}" onclick="makeTurn(this.id, this.name)">{{col['value']}}</button>
                 {% else %}
                     <button disabled name="{{gameId}}" id={{rowIndex,colIndex}}
-                            onclick="setSomething(this.id, this.name)">{{col['value']}}</button>
+                            onclick="makeTurn(this.id, this.name)">{{col['value']}}</button>
                 {% endif %}
             {% endfor %}
         </p>
