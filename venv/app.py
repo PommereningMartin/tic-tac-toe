@@ -1,14 +1,18 @@
+import random
+
 import flask
+from flask_cors import CORS
 from flask import request, redirect, render_template, url_for
 from game_service import game_service
 
 app = flask.Flask(__name__)
+CORS(app)
 """
 TODO:
 - refactor users into own service
 - let the service handle, add, remove, update
 """
-users = [{"id": 1, "name": "test"}, {"id": 2, "name": "test2"}]
+users = []
 
 
 @app.route("/")
@@ -42,9 +46,8 @@ def make_turn():
 
 @app.route("/createUser", methods=["POST"])
 def create_user():
-    users.append({"id": 3, "name":"test3"})
+    users.append({"id": random.randint(1, 1000), "name": random.randbytes(10).hex()})
     return users
-    #render_template('index.html', users=users)
 
 
 @app.route("/startGame", methods=["POST"])
@@ -60,10 +63,10 @@ def start():
     """
     foo_bar = game_service.new_game()
     if request.method == 'POST':
-        foo_bar.player_1.name = request.json['player1Name']
-        foo_bar.player_2.name = request.json['player2Name']
+        foo_bar.player_1.name = users[0]['name']
+        foo_bar.player_2.name = users[1]['name']
         current_player_start = request.json['currentPlayer']
-        print('current player start',request.json['currentPlayer'])
+        print('current player start', request.json['currentPlayer'])
         if current_player_start == 1:
             foo_bar.current_player = foo_bar.player_1
         else:
@@ -75,8 +78,8 @@ def start():
 @app.route("/game")
 def game():
     args = request.args
-    gameId = int(args['gameId'])
-    return render_template('game.html', game=game_service.game(gameId).get_state())
+    game_id = int(args['gameId'])
+    return render_template('game.html', game=game_service.game(game_id).get_state())
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@
                 body: JSON.stringify({ "userName": a}),
             }).then(response => response.json())
                 .then(async response => {
-                await updateDiv(1)
+                await updateDiv(undefined)
             })
         }
 
@@ -41,6 +41,7 @@
         function updateDiv(id)
         {
             $( "#playground" ).load(window.location.href + " #playground" );
+            $( "#welcome" ).load(window.location.href + " #welcome" );
         }
     </script>
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
@@ -48,9 +49,11 @@
 <body>
 <h1>Welcome to TicTacToe-Python-Flask</h1>
 <div id="welcome">
-    <button id="start" onclick="startGame()">Start a new Game</button>
+    {% if users|length >= 2 %}
+        <button id="start" onclick="startGame()">Start a new Game</button>
+    {% endif %}
+    <button id="create_user" onclick="createUser()">Create User</button>
 </div>
-<button id="create_user" onclick="createUser()">Create User</button>
 <div id="playground">
     <p>Users</p>
     <h3>Name</h3>

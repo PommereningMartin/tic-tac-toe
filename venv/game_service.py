@@ -26,7 +26,8 @@ class GameService:
             # print('boardId',self.games.get(int_game_id).grid.id)
             self.game(int_game_id).grid = Board(3, 3, 2)
             # print('boardId',self.games.get(int_game_id).grid.id)
-        raise ValueError('Could not find a game for reset!')
+        else:
+            raise ValueError('Could not find a game for reset!')
 
     def reset_state(self, game_id: int, current_player_number: int) -> None:
         game = self.game(game_id)
