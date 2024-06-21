@@ -8,7 +8,6 @@ class Player(object):
         self.input = None
         self.name = None
         self.id = player_number
-        #self.ask_name(player_number)
 
     def ask_name(self, number: int) -> None:
         print("Pls add Name for Player {0}".format(number))

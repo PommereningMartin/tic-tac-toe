@@ -3,11 +3,17 @@ from flask import request, redirect, render_template, url_for
 from game_service import game_service
 
 app = flask.Flask(__name__)
+"""
+TODO:
+- refactor users into own service
+- let the service handle, add, remove, update
+"""
+users = [{"id": 1, "name": "test"}, {"id": 2, "name": "test2"}]
 
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template('index.html', users=users)
 
 
 @app.route("/reset", methods=["POST"])
@@ -34,8 +40,24 @@ def make_turn():
     return {}
 
 
+@app.route("/createUser", methods=["POST"])
+def create_user():
+    users.append({"id": 3, "name":"test3"})
+    return users
+    #render_template('index.html', users=users)
+
+
 @app.route("/startGame", methods=["POST"])
 def start():
+    """
+    TODO´s
+    - create user
+    - put user into que
+    - create new game everytime at least 2 users are in the que
+      that are not already in a game
+    - show list of current users
+    :return:
+    """
     foo_bar = game_service.new_game()
     if request.method == 'POST':
         foo_bar.player_1.name = request.json['player1Name']

@@ -34,7 +34,8 @@ class GameService:
         game.winner = None
         game.current_turn = 0
 
-    def reset_current_player(self, game: Game, current_player_number: int) -> None:
+    @staticmethod
+    def reset_current_player(game: Game, current_player_number: int) -> None:
         if current_player_number == 1:
             game.current_player = game.player_1
         else:
@@ -43,7 +44,8 @@ class GameService:
     def get_state(self, game_id) -> GameState:
         return self.game(game_id).get_state()
 
-    def field_to_coordinates(self, field) -> tuple:
+    @staticmethod
+    def field_to_coordinates(field) -> tuple:
         x, y = tuple(map(int, field.replace("(", "").replace(")", "").split(",")))
         return x, y
 

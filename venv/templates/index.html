@@ -2,9 +2,24 @@
 <head>
     <title>TicTacToe-Python-Flask</title>
     <script>
-        function startGame(){
-            const a = 'a' //prompt('Pls enter Player1 name: ')
-            const b = 'b' //prompt('Pls enter Player2 name:')
+        function createUser() {
+            const a = 'foo' //prompt('Pls enter Player1 name: ')
+            fetch('http://127.0.0.1:5000/createUser', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ "userName": a}),
+            }).then(response => response.json())
+                .then(async response => {
+                await updateDiv(1)
+            })
+        }
+
+    function startGame(){
+            const a = 'foo' //prompt('Pls enter Player1 name: ')
+            const b = 'bar' //prompt('Pls enter Player2 name:')
             const current = Math.floor(Math.random() * 2)+1
             console.log(current)
             fetch('http://127.0.0.1:5000/startGame', {
@@ -22,12 +37,26 @@
                 }
             })
         }
+
+        function updateDiv(id)
+        {
+            $( "#playground" ).load(window.location.href + " #playground" );
+        }
     </script>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
 </head>
 <body>
 <h1>Welcome to TicTacToe-Python-Flask</h1>
 <div id="welcome">
     <button id="start" onclick="startGame()">Start a new Game</button>
+</div>
+<button id="create_user" onclick="createUser()">Create User</button>
+<div id="playground">
+    <p>Users</p>
+    <h3>Name</h3>
+    {% for user in users %}
+    id: {{user.id}}, name: {{user.name}} <br>
+    {% endfor %}
 </div>
 </body>
 </html>
