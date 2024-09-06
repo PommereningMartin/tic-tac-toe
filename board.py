@@ -127,4 +127,4 @@ class Board(List[List[Cell]]):
     def check_rows_for_winner(self):
         for row in range(self.rows):
             for col in range(self.cols):
-                
+                return
