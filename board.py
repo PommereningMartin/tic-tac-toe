@@ -1,26 +1,29 @@
 import random
 from typing import List
+from typing import TypedDict
 
 
-class Board(List):
-    default_char = ' '
+class Cell(TypedDict):
+    value: str
+    isEnabled: bool
 
-    def __init__(self, height, width, dimension):
+
+class Board(List[List[Cell]]):
+    default_char = None
+
+    def __init__(self, height, width):
         super().__init__()
-        self.height = range(height)
-        self.width = range(width)
-        self.dimension = dimension
+        self.rows, self.cols = height, width
         self.moves = []
-        self.init_grid(height, width)
+        self.init_grid()
         self.id = random.randint(0, 1000)
 
-    def init_grid(self, height, width):
+    def init_grid(self):
         # print('running init grid')
-        rows, cols = height, width
-        for i in range(rows):
-            col = []
-            for j in range(cols):
-                cell = dict(
+        for i in range(self.rows):
+            col: List[Cell] = []
+            for j in range(self.cols):
+                cell: Cell = dict(
                     value=self.default_char,
                     isEnabled=True)
                 col.append(cell)
@@ -35,27 +38,39 @@ class Board(List):
 
     def get_legal_moves(self):
         choices = []
-        for row in range(self.dimension):
-            for col in range(self.dimension):
+        for row in range(self.rows):
+            for col in range(self.cols):
                 if self.is_space_empty(row, col):
                     choices.append([row, col])
         print('get_legal_moves', choices)
         return choices
 
-    def is_space_empty(self, row, col):
-        return self[row][col]['value'] == self.default_char
+    def is_space_empty(self, row_index, col_index):
+        return self[row_index][col_index]['value'] is None
 
-    def make_move(self, row, col, player):
-        if self.is_space_empty(row, col):
-            self[row][col]['value'] = player.symbol
-            self.moves.append([row, col])
+    def make_move(self, row_index, col_index, player):
+        if self.is_space_empty(row_index, col_index):
+            self.set_value(row_index, col_index, player.symbol)
+            self.moves.append([(row_index, col_index, player.symbol)])
+
+    def set_value(self, row_index, col_index, value):
+        self[row_index][col_index]['value'] = value
+
+    def get_value(self, row_index, col_index):
+        return self[row_index][col_index]['value']
+
+    def min_moves_for_win(self):
+        return len(self.moves) < 5
 
     def has_winner(self):
+        winner = None
         # need at least 5 moves before x hits three in a row
-        if len(self.moves) < 5:
+        if not self.min_moves_for_win():
             print('moves', self.moves)
             #return None
-
+        
+        winner = self.check_rows_for_winner()
+        
         # check rows for win
         for row in range(self.dimension):
             print('has_winner', self[row])
@@ -69,9 +84,9 @@ class Board(List):
                     return value
 
         # check columns for win
-        for col in range(self.dimension):
+        for col in range(self.cols):
             unique_cols = set()
-            for row in range(self.dimension):
+            for row in range(self.rows):
                 unique_cols.add(self[row][col]['value'])
 
             if len(unique_cols) == 1:
@@ -102,9 +117,14 @@ class Board(List):
                 return value
 
         # found no winner, return None
-        return None
+        return winner
 
     def disable_all_fields(self):
         for row in self:
             for field in row:
                 field['isEnabled'] = False
+
+    def check_rows_for_winner(self):
+        for row in range(self.rows):
+            for col in range(self.cols):
+                
