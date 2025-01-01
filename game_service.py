@@ -22,9 +22,7 @@ class GameService:
     def reset_grid(self, game_id):
         int_game_id = int(game_id)
         if self.games.__contains__(int_game_id):
-            # print('boardId',self.games.get(int_game_id).grid.id)
-            self.game(int_game_id).grid = Board(3, 3, 2)
-            # print('boardId',self.games.get(int_game_id).grid.id)
+            self.game(int_game_id).board = Board(3, 3)
         else:
             raise ValueError('Could not find a game for reset!')
 
@@ -54,12 +52,12 @@ class GameService:
         if game.current_player == game.player_1:
             # TODO: add helper function to grid to set a value
             # game.make_turn(x, y, value)
-            game.grid[x][y]['value'] = game.player_1.symbol
+            game.board[x][y]['value'] = game.player_1.symbol
             game.current_player = game.player_2
         else:
-            game.grid[x][y]['value'] = game.player_2.symbol
+            game.board[x][y]['value'] = game.player_2.symbol
             game.current_player = game.player_1
-        game.grid[x][y]['isEnabled'] = False
+        game.board[x][y]['isEnabled'] = False
 
     def increase_turn(self, game_id):
         self.game(game_id).current_turn += 1
@@ -76,7 +74,8 @@ class GameService:
     def check_winner(self, game_id: int):
         game = self.game(game_id)
         if game.current_turn >= 5:
-            game.winner = game.grid.has_winner()
+            print(00000, game.board.check_winner())
+            game.winner = game.board.has_winner()
 
 
 game_service = GameService()
