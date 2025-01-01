@@ -10,7 +10,7 @@
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ "userName": a}),
+                body: undefined,
             }).then(response => response.json())
                 .then(async response => {
                 await updateDiv(undefined)

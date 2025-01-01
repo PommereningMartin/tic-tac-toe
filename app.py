@@ -62,13 +62,17 @@ def start():
     """
     new_game = game_service.new()
     if request.method == 'POST':
-        new_game.player_1.name = users[0]['name']
-        new_game.player_2.name = users[1]['name']
+        new_game.player_1.name = users[get_random_element_from_dict()]['name']
+        new_game.player_2.name = users[get_random_element_from_dict()]['name']
         current_player_start = request.json['currentPlayer']
         print('current player start', request.json['currentPlayer'])
         game_service.reset_current_player(new_game, current_player_start)
         return redirect(url_for('game', gameId=new_game.id))
     return {}
+
+
+def get_random_element_from_dict():
+    return random.randint(0, len(users) - 1)
 
 
 @app.route("/game")
