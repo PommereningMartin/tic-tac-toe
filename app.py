@@ -1,23 +1,60 @@
 import flask, random
 
 from flask_cors import CORS
-from flask import request, redirect, render_template, url_for
+from flask import request, redirect, render_template, url_for, session
+from flask_dance.contrib.google import google
+from flask_login import login_required, logout_user, LoginManager
+from oauthlib.oauth2 import TokenExpiredError
+
+from auth import google_blueprint
 from game_service import game_service
+from models import login_manager, db
 
 app = flask.Flask(__name__)
+app.secret_key = "supersecretkey"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///./users.db"
+app.register_blueprint(google_blueprint, url_prefix="/login")
 CORS(app)
+db.init_app(app)
+login_manager.init_app(app)
+
+with app.app_context():
+    db.create_all()
+
 """
 TODO:
 - refactor users into own service
 - let the service handle, add, remove, update
 """
-users = []
 
+
+@app.route("/google")
+def login():
+    try:
+        if not google.authorized:
+            return redirect(url_for("google.login"))
+        res = google.get("/oauth2/v2/userinfo")
+        username = res.json()["name"]
+    except TokenExpiredError as e:
+        return redirect(url_for("google.login"))
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("index"))
 
 @app.route("/")
 def index():
-    return render_template("index.html", users=users)
+    if not google.authorized:
+        return redirect(url_for("login"))
+    return render_template("index.html")
 
+@app.route("/main")
+def main():
+    if not google.authorized:
+        return redirect(url_for("index"))
+    return render_template("main.html", users=[])
 
 @app.route("/reset", methods=["POST"])
 def reset():
@@ -45,8 +82,8 @@ def make_turn():
 
 @app.route("/createUser", methods=["POST"])
 def create_user():
-    users.append({"id": random.randint(1, 1000), "name": random.randbytes(10).hex()})
-    return users
+    # users.append({"id": random.randint(1, 1000), "name": random.randbytes(10).hex()})
+    return []
 
 
 @app.route("/startGame", methods=["POST"])
@@ -62,18 +99,13 @@ def start():
     """
     new_game = game_service.new()
     if request.method == 'POST':
-        new_game.player_1.name = users[get_random_element_from_dict()]['name']
-        new_game.player_2.name = users[get_random_element_from_dict()]['name']
+        #new_game.player_1.name = users[get_random_element_from_dict()]['name']
+        #new_game.player_2.name = users[get_random_element_from_dict()]['name']
         current_player_start = request.json['currentPlayer']
         print('current player start', request.json['currentPlayer'])
         game_service.reset_current_player(new_game, current_player_start)
         return redirect(url_for('game', gameId=new_game.id))
     return {}
-
-
-def get_random_element_from_dict():
-    return random.randint(0, len(users) - 1)
-
 
 @app.route("/game")
 def game():
