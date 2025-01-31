@@ -1,25 +1,23 @@
-import flask, random
+import sqlite3
 
+from flask import request, redirect, render_template, url_for, Flask
 from flask_cors import CORS
-from flask import request, redirect, render_template, url_for, session
 from flask_dance.contrib.google import google
-from flask_login import login_required, logout_user, LoginManager
+from flask_login import login_required, logout_user, login_user, current_user
 from oauthlib.oauth2 import TokenExpiredError
 
 from auth import google_blueprint
 from game_service import game_service
-from models import login_manager, db
+from models import login_manager, User, db
 
-app = flask.Flask(__name__)
+app = Flask(__name__)
 app.secret_key = "supersecretkey"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///./users.db"
 app.register_blueprint(google_blueprint, url_prefix="/login")
 CORS(app)
-db.init_app(app)
 login_manager.init_app(app)
+users = []
 
-with app.app_context():
-    db.create_all()
+
 
 """
 TODO:
@@ -34,9 +32,22 @@ def login():
         if not google.authorized:
             return redirect(url_for("google.login"))
         res = google.get("/oauth2/v2/userinfo")
-        username = res.json()["name"]
+        user = User(res.json()["name"])
+        con = sqlite3.connect("test.db")
+        cur = con.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS USER(username varchar(255), id int primary key);")
+        sql = """INSERT INTO USER VALUES ('{0}', {1})""".format(user.username, user.id)
+        cur.execute(sql)
+        con.commit()
+        login_user(user)
+        return redirect(url_for("dashboard"))
     except TokenExpiredError as e:
         return redirect(url_for("google.login"))
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    return render_template("dashboard.html", players=users, games=[], current_user=current_user)
 
 @app.route("/logout")
 @login_required
@@ -51,12 +62,14 @@ def index():
     return render_template("index.html")
 
 @app.route("/main")
+@login_required
 def main():
     if not google.authorized:
         return redirect(url_for("index"))
     return render_template("main.html", users=[])
 
 @app.route("/reset", methods=["POST"])
+@login_required
 def reset():
     # TODO type reset request params
     # TODO: pass data into GameService to not fiddle with data here
@@ -68,6 +81,7 @@ def reset():
 
 
 @app.route("/makeTurn", methods=["POST"])
+@login_required
 def make_turn():
     if request.method == 'POST':
         data = request.json
@@ -81,12 +95,14 @@ def make_turn():
 
 
 @app.route("/createUser", methods=["POST"])
+@login_required
 def create_user():
     # users.append({"id": random.randint(1, 1000), "name": random.randbytes(10).hex()})
     return []
 
 
 @app.route("/startGame", methods=["POST"])
+@login_required
 def start():
     """
     TODO´s
@@ -108,6 +124,7 @@ def start():
     return {}
 
 @app.route("/game")
+@login_required
 def game():
     args = request.args
     # TODO: validate that gameId is allways an int -> throw 500 if not

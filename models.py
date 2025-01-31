@@ -1,22 +1,33 @@
 import random
+import sqlite3
 
-from flask_sqlalchemy import SQLAlchemy
-from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
 from flask_login import LoginManager, UserMixin
+from tinydb import Query, TinyDB, where
 
-db = SQLAlchemy()
+users = []
+db = TinyDB('./db.json')
 
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(250), unique=True)
+class User(UserMixin):
+    # TODO:
+    #  expand user fields
+    #  add more helper function for read/write
+    id: int
+    name: str
 
+    def __init__(self, name, id=None):
+        self.id = random.randint(1, 10000000) if id is None else id
+        self.name = name
+        self.username = name
 
-class OAuth(OAuthConsumerMixin, db.Model):
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    user = db.relationship(User)
+    def get_id(self):
+        return str(self.id)
 
 login_manager = LoginManager()
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(user_id)
+    con = sqlite3.connect("test.db")
+    cur = con.cursor()
+    results = cur.execute("""SELECT * FROM USER WHERE id = {0}""".format(user_id)).fetchall()
+    name, id = results[0]
+    return User(name, id=id)

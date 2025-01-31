@@ -1,0 +1,26 @@
+<!-- templates/dashboard.html -->
+
+<script>
+    function updateDiv(id)
+    {
+        $( "#playground" ).load(window.location.href + " #playground" );
+    }
+</script>
+
+{% extends '_base.html' %}
+{% block content %}
+    <h1>Welcome to TicTacToe-Python-Flask</h1>
+    <div id="welcome">
+        {% if users|length >= 2 %}
+            <button id="start" onclick="startGame()">Start a new Game</button>
+        {% endif %}
+        <button id="create_user" onclick="createUser()">Create Test Players</button>
+    </div>
+    <div id="playground">
+        <p>Players</p>
+        <h3>Name</h3>
+        {% for player in players %}
+            id: {{player.id}}, name: {{player.name}} <br>
+        {% endfor %}
+    </div>
+{% endblock content %}

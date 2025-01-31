@@ -16,6 +16,15 @@
     <title>Flask Social Login</title>
 </head>
 <body style="padding-top: 10%;">
+
 {% block content %} {% endblock content %}
+
+<div style="text-align:center;">
+    {% if current_user.is_authenticated %}
+        <h1>You are logged in as {{current_user.username}}</h1>
+        <br><br>
+        <a href="{{url_for('logout')}}" class="btn btn-danger">Logout</a>
+    {% endif %}
+</div>
 </body>
 </html>
