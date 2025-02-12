@@ -1,0 +1,17 @@
+services:
+  db:
+    image: mysql:8.0.32
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3306:3306'
+    security_opt:
+      - seccomp:unconfined
+    volumes:
+      - ./mysqld.cnf:/etc/mysql/conf.d/mysqld.cnf:ro
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: test-db
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: root
+volumes:
+  mysql-data:

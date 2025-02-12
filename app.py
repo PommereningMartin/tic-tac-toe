@@ -3,28 +3,56 @@ import sqlite3
 from flask import request, redirect, render_template, url_for, Flask
 from flask_cors import CORS
 from flask_dance.contrib.google import google
-from flask_login import login_required, logout_user, login_user, current_user
+from flask_login import login_required, logout_user, login_user, current_user, LoginManager
 from oauthlib.oauth2 import TokenExpiredError
+from sqlalchemy import create_engine, Column, Integer, String, Boolean
 
 from auth import google_blueprint
 from game_service import game_service
-from models import login_manager, User, db
+from dotenv import dotenv_values
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase, sessionmaker, declarative_base
+
+config = dotenv_values(".env")
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 app.register_blueprint(google_blueprint, url_prefix="/login")
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:root@127.0.0.1:3306/test-db"
 CORS(app)
+engine = create_engine('mysql+pymysql://root:root@127.0.0.1:3306/test-db')
+login_manager = LoginManager()
 login_manager.init_app(app)
 users = []
 
+Session = sessionmaker(bind=engine)
+session = Session()
 
-
+Base = declarative_base()
 """
 TODO:
 - refactor users into own service
 - let the service handle, add, remove, update
 """
 
+class User(Base):
+    __tablename__ = 'user'
+    id = Column(Integer, primary_key = True, autoincrement = True)
+    google_id = Column(String(255))
+    username = Column(String(255))
+    is_active = Column(Boolean(False))
+
+    def get_id(self):
+        return self.id
+
+    def get_google_id(self):
+        return self.google_id
+
+Base.metadata.create_all(engine)
+
+@login_manager.user_loader
+def load_user(google_id):
+    return session.query(User).filter_by(google_id=google_id).first()
 
 @app.route("/google")
 def login():
@@ -32,14 +60,13 @@ def login():
         if not google.authorized:
             return redirect(url_for("google.login"))
         res = google.get("/oauth2/v2/userinfo")
-        user = User(res.json()["name"])
-        con = sqlite3.connect("test.db")
-        cur = con.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS USER(username varchar(255), id int primary key);")
-        sql = """INSERT INTO USER VALUES ('{0}', {1})""".format(user.username, user.id)
-        cur.execute(sql)
-        con.commit()
-        login_user(user)
+        user = session.query(User).filter_by(google_id=res.json()["id"]).first()
+        if not user:
+            user = User(username=res.json()["name"], google_id=res.json()["id"])
+            session.add(user)
+            session.commit()
+        login_user(user, remember=True)
+        users.append(user)
         return redirect(url_for("dashboard"))
     except TokenExpiredError as e:
         return redirect(url_for("google.login"))
@@ -133,4 +160,4 @@ def game():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=config['DEBUG'], host=config['HOST'], port=config['PORT'])
