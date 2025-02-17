@@ -1,10 +1,13 @@
 import json
 import logging
 import os
+import random
+import string
 from datetime import datetime
 
 from dotenv import load_dotenv
 from flask import request, redirect, render_template, url_for, Flask, flash, session
+from flask_cors import CORS
 from flask_dance.contrib.google import google
 from flask_login import login_required, logout_user, login_user, current_user, LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -29,7 +32,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
     f"{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+CORS(app)
 # Initialize extensions
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -57,6 +60,8 @@ google = oauth.register(
     userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo'
 )
 
+users = []
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
 
@@ -69,6 +74,19 @@ class User(UserMixin, db.Model):
     last_login = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
     role = db.Column(db.Enum('user', 'admin'), default='user')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'google_id': self.google_id,
+            'email': self.email,
+            'name': self.name,
+            'picture': self.picture,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'last_login': self.last_login.isoformat() if self.last_login else None,
+            'is_active': self.is_active,
+            'role': self.role
+        }
 
 # Create all database tables
 with app.app_context():
@@ -137,7 +155,7 @@ def callback():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html", players=[], games=[], current_user=current_user)
+    return render_template("dashboard.html", players=users, games=[], current_user=current_user)
 
 @app.route("/logout")
 @login_required
@@ -183,9 +201,15 @@ def make_turn():
 @app.route("/createUser", methods=["POST"])
 @login_required
 def create_user():
-    # users.append({"id": random.randint(1, 1000), "name": random.randbytes(10).hex()})
-    return []
+    foo = create_random_user()
+    users.append(foo)
+    return foo.to_dict()
 
+@app.route("/clearPlayers", methods=["POST"])
+@login_required
+def clear_players():
+    users.clear()
+    return []
 
 @app.route("/startGame", methods=["POST"])
 @login_required
@@ -228,6 +252,39 @@ def debug():
             'routes': [str(rule) for rule in app.url_map.iter_rules()]
         }
     return 'Debug information not available in production'
+
+def create_random_user():
+    # Generate random string for google_id
+    random_google_id = ''.join(random.choices(string.digits, k=21))
+
+    # Generate random email
+    random_string = ''.join(random.choices(string.ascii_lowercase, k=8))
+    random_email = f"{random_string}@example.com"
+
+    # Create random name
+    random_name = ''.join(random.choices(string.ascii_lowercase, k=6)).capitalize()
+
+    # Create new user
+    new_user = User(
+        google_id=random_google_id,
+        email=random_email,
+        name=random_name,
+        picture="https://example.com/default-avatar.png",
+        created_at=datetime.utcnow(),
+        last_login=datetime.utcnow(),
+        is_active=True,
+        role='user'
+    )
+
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return new_user
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating user: {e}")
+        return None
+
 
 if __name__ == "__main__":
     app.run(debug=os.getenv('DEBUG'), host=os.getenv('HOST'), port=os.getenv('PORT'))
