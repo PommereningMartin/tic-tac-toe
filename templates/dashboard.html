@@ -3,7 +3,7 @@
 <script>
     function createUser() {
         const a = 'foo' //prompt('Pls enter Player1 name: ')
-        fetch('http://127.0.0.1:9010/createUser', {
+        fetch('http://localhost:9010/createUser', {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -15,18 +15,35 @@
                 await updateDiv(undefined)
             })
     }
+
+    function clearPlayers() {
+        fetch('http://localhost:9010/clearPlayers', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: undefined,
+        }).then(response => response.json())
+            .then(async response => {
+                await updateDiv(undefined)
+            })
+    }
+
     function updateDiv(id)
     {
         $( "#playground" ).load(window.location.href + " #playground" );
     }
 </script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 {% extends '_base.html' %}
 {% block content %}
     <h1>Welcome to TicTacToe-Python-Flask</h1>
     <div id="welcome">
-        {% if users|length >= 2 %}
+        {% if players|length >= 2 %}
             <button id="start" onclick="startGame()">Start a new Game</button>
+            <button id="start" onclick="clearPlayers()">Remove all Players</button>
         {% endif %}
         <button id="create_user" onclick="createUser()">Create Test Players</button>
     </div>
