@@ -7,7 +7,7 @@ from game_state import GameState
 
 class Game(object):
 
-    def __init__(self):
+    def __init__(self, game_id: str, ):
         self.player_1 = Player(1, 'X')
         self.player_2 = Player(2, 'O')
         self.id: int = random.randint(1, 100)
@@ -27,6 +27,7 @@ class Game(object):
         if self.winner is not None and self.winner != 'No winner':
             self.board.disable_all_fields()
             result['winner'] = self.winner_value_to_player(self.winner)
+        print(result)
         return result
 
     def winner_value_to_player(self, winner) -> str:

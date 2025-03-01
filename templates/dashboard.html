@@ -1,57 +1,79 @@
 <!-- templates/dashboard.html -->
 
-<script>
-    function createUser() {
-        const a = 'foo' //prompt('Pls enter Player1 name: ')
-        fetch('http://localhost:9010/createUser', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: undefined,
-        }).then(response => response.json())
-            .then(async response => {
-                await updateDiv(undefined)
-            })
-    }
-
-    function clearPlayers() {
-        fetch('http://localhost:9010/clearPlayers', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: undefined,
-        }).then(response => response.json())
-            .then(async response => {
-                await updateDiv(undefined)
-            })
-    }
-
-    function updateDiv(id)
-    {
-        $( "#playground" ).load(window.location.href + " #playground" );
-    }
-</script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 {% extends '_base.html' %}
 {% block content %}
-    <h1>Welcome to TicTacToe-Python-Flask</h1>
-    <div id="welcome">
-        {% if players|length >= 2 %}
-            <button id="start" onclick="startGame()">Start a new Game</button>
-            <button id="start" onclick="clearPlayers()">Remove all Players</button>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Game Lobby</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            .game-list {
+                margin-top: 20px;
+            }
+            .game-room {
+                border: 1px solid #ddd;
+                padding: 10px;
+                margin-bottom: 10px;
+                border-radius: 5px;
+            }
+            .button {
+                background-color: #4CAF50;
+                border: none;
+                color: white;
+                padding: 10px 20px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+                cursor: pointer;
+                border-radius: 5px;
+            }
+            .logout {
+                background-color: #f44336;
+            }
+        </style>
+    </head>
+    <body>
+    <div class="header">
+        <h1>Welcome, {{ user['name'] }}</h1>
+    </div>
+
+    <div>
+        <p>Email: {{ user['email'] }}</p>
+        <a href="/start_game" class="button">Start New Game</a>
+    </div>
+
+    <div class="game-list">
+        <h2>Active Game Rooms</h2>
+        {% if rooms %}
+            {% for room_id, room_data in rooms.items() %}
+                <div class="game-room">
+                    <h3>Game Room: {{ room_id[:8] }}...</h3>
+                    <p>Players: {{ room_data['players']|length }}</p>
+                    <a href="/game/{{ room_id }}" class="button">Join Game</a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No active game rooms. Start a new game!</p>
         {% endif %}
-        <button id="create_user" onclick="createUser()">Create Test Players</button>
     </div>
-    <div id="playground">
-        <p>Players</p>
-        <h3>Name</h3>
-        {% for player in players %}
-            id: {{player.id}}, name: {{player.name}} <br>
-        {% endfor %}
-    </div>
+    </body>
+    </html>
 {% endblock content %}

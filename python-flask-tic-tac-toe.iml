@@ -5,10 +5,17 @@
   </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/venv/Lib/site-packages/pip/_internal/operations/build" />
+    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jquery-3.7.1" level="application" />
+  </component>
+  <component name="PackageRequirementsSettings">
+    <option name="removeUnused" value="true" />
+    <option name="modifyBaseFiles" value="true" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Room</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .game-area {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            min-height: 300px;
+        }
+        .messages {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .leave-button {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Game Room: {{ room_id[:8] }}...</h1>
+    <div>
+        <span>Logged in as: {{ user['email'] }}</span>
+        <button onclick="leaveGame()" class="button leave-button">Leave Game</button>
+    </div>
+</div>
+
+<div class="game-area">
+    <h2>Game Area</h2>
+    <p>This is where your game board or interface would go.</p>
+    <button onclick="sendGameEvent()" class="button">Send Game Event</button>
+</div>
+
+<h3>Game Messages</h3>
+<div id="messages" class="messages"></div>
+
+<script>
+    const socket = io();
+    const roomId = "{{ room_id }}";
+
+    // Join the game room when page loads
+    socket.emit("join_game", { room_id: roomId });
+
+    // Listen for messages
+    socket.on("message", (data) => {
+        addMessage(data.data);
+    });
+
+    // Listen for game updates
+    socket.on("game_update", (data) => {
+        addMessage("Game Update: " + data.data);
+    });
+
+    // Listen for errors
+    socket.on("error", (data) => {
+        addMessage("Error: " + data.data);
+    });
+
+    // Helper function to add messages to the message area
+    function addMessage(message) {
+        const messagesDiv = document.getElementById("messages");
+        const newMessage = document.createElement("p");
+        newMessage.textContent = message;
+        messagesDiv.appendChild(newMessage);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Send a game event
+    function sendGameEvent() {
+        socket.emit("game_event", {
+            room_id: roomId,
+            event: "Player made a move!"
+        });
+    }
+
+    // Leave the game room
+    function leaveGame() {
+        socket.emit("leave_game", { room_id: roomId });
+        window.location.href = "/";
+    }
+
+    // Handle page unload (browser close, refresh, etc.)
+    window.addEventListener("beforeunload", () => {
+        socket.emit("leave_game", { room_id: roomId });
+    });
+</script>
+</body>
+</html>
