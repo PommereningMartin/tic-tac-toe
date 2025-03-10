@@ -1,3 +1,5 @@
+from random import randint
+
 from game import Game
 from board import Board
 from game_state import GameState
@@ -14,19 +16,19 @@ class GameService:
         self.games[brand_new_game.id] = brand_new_game
         return brand_new_game
 
-    def game(self, game_id: int) -> Game:
-        if self.games.__contains__(game_id):
+    def game(self, game_id: str) -> Game:
+        if game_id in self.games:
             return self.games.get(game_id)
         raise ValueError('A Game with id {} is not running!'.format(game_id))
 
     def reset_grid(self, game_id):
-        int_game_id = int(game_id)
-        if self.games.__contains__(int_game_id):
+        int_game_id = game_id
+        if game_id in self.games:
             self.game(int_game_id).board = Board(3, 3)
         else:
             raise ValueError('Could not find a game for reset!')
 
-    def reset_state(self, game_id: int, current_player_number: int) -> None:
+    def reset_state(self, game_id: str, current_player_number: int) -> None:
         game = self.game(game_id)
         self.reset_current_player(game, current_player_number)
         game.winner = None
@@ -47,7 +49,7 @@ class GameService:
         x, y = tuple(map(int, field.replace("(", "").replace(")", "").split(",")))
         return x, y
 
-    def player_value_to_grid_value(self, game_id: int, x: int, y: int):
+    def player_value_to_grid_value(self, game_id: str, x: int, y: int):
         game = self.game(game_id)
         if game.current_player == game.player_1:
             # TODO: add helper function to grid to set a value
@@ -62,16 +64,17 @@ class GameService:
     def increase_turn(self, game_id):
         self.game(game_id).current_turn += 1
 
-    def reset(self, game_id: int, current_player_number: int) -> None:
+    def reset(self, game_id: str, current_player_number: int) -> None:
         self.reset_grid(game_id)
         self.reset_state(game_id, current_player_number)
 
-    def make_turn(self, game_id: int, field: str):
+    def make_turn(self, game_id: str, field: str) -> Game:
         x, y = self.field_to_coordinates(field)
         self.player_value_to_grid_value(game_id, x, y)
         self.increase_turn(game_id)
+        return self.game(game_id)
 
-    def check_winner(self, game_id: int):
+    def check_winner(self, game_id: str):
         game = self.game(game_id)
         if game.current_turn >= 5:
             print(00000, game.board.check_winner())

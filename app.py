@@ -15,7 +15,7 @@ from flask_sqlalchemy import SQLAlchemy
 from authlib.integrations.flask_client import OAuth
 
 from auth import google_blueprint
-from game_service import game_service
+from game_service import game_service, GameService
 from waiting_room import WaitingRoom
 
 # Configure logging
@@ -226,15 +226,6 @@ def clear_players():
 @app.route("/startGame", methods=["POST"])
 @login_required
 def start():
-    """
-    TODO´s
-    - create user
-    - put user into que
-    - create new game everytime at least 2 users are in the que
-      that are not already in a game
-    - show list of current users
-    :return:
-    """
     new_game = game_service.new()
     if len(users) > 0:
         new_game.player_1.name = users[0].name
@@ -252,22 +243,17 @@ def start():
 @login_required
 def game():
     args = request.args
-    # TODO: validate that gameId is allways an int -> throw 500 if not
     game_id = int(args['gameId'])
     return render_template('game.html', game=game_service.game(game_id).get_state())
 
 def create_random_user():
-    # Generate random string for google_id
     random_google_id = ''.join(random.choices(string.digits, k=21))
 
-    # Generate random email
     random_string = ''.join(random.choices(string.ascii_lowercase, k=8))
     random_email = f"{random_string}@example.com"
 
-    # Create random name
     random_name = ''.join(random.choices(string.ascii_lowercase, k=6)).capitalize()
 
-    # Create new user
     new_user = User(
         google_id=random_google_id,
         email=random_email,
@@ -292,11 +278,10 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 
 socketio = SocketIO(app)
 
-logged_in_users = {}  # {email: user_data}
-active_game_rooms = {}  # {room_id: {created_at, players: [emails], game_state}}
+logged_in_users = {}
+active_game_rooms = {}
 
 
-# Helper functions
 def get_user_from_session():
     return session.get("user")
 
@@ -306,7 +291,6 @@ def is_user_logged_in():
 
 
 def create_game_room(creator_email):
-    """Create a new game room."""
     room_id = str(uuid.uuid4())
     active_game_rooms[room_id] = {
         "created_at": datetime.now().isoformat(),
@@ -318,7 +302,6 @@ def create_game_room(creator_email):
 
 
 def clean_inactive_rooms():
-    """Remove inactive game rooms (no players)."""
     to_remove = []
     for room_id, room_data in active_game_rooms.items():
         if not room_data["players"]:
@@ -333,13 +316,11 @@ def clean_inactive_rooms():
 
 @app.route("/start_game")
 def start_game():
-    """Start a new game room."""
     if not is_user_logged_in():
         return redirect(url_for("login"))
 
     user = get_user_from_session()
     room_id = create_game_room(user["email"])
-    print('00000', active_game_rooms)
     logger.info(f"New game room created: {room_id} by {user['email']}")
     return redirect(url_for("game_room", room_id=room_id))
 
@@ -351,20 +332,18 @@ def game_room(room_id):
 
     user = get_user_from_session()
 
-    # Check if room exists
     if room_id not in active_game_rooms:
         return render_template("error.html", message="Game room not found!"), 404
 
-    # Add user to room if not already in
     if user["email"] not in active_game_rooms[room_id]["players"]:
         active_game_rooms[room_id]["players"].append(user["email"])
 
-    return render_template("gameV2.html", room_id=room_id, user=user, room_data=active_game_rooms[room_id])
+    game = game_service.new()
+    return render_template("gameV2.html", room_id=room_id, user=user,game=game.get_state(), room_data=active_game_rooms[room_id])
 
 
 @app.route("/api/rooms")
 def list_rooms():
-    """API endpoint to list all active game rooms."""
     if not is_user_logged_in():
         return jsonify({"error": "Not logged in"}), 401
 
@@ -372,7 +351,6 @@ def list_rooms():
     return jsonify({"rooms": active_game_rooms})
 
 
-# Error handlers
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template("error.html", message="Page not found"), 404
@@ -383,12 +361,10 @@ def server_error(e):
     return render_template("error.html", message="Server error. Please try again later."), 500
 
 
-# Socket.IO event handlers
 @socketio.on("connect")
 def handle_connect():
-    """Handle client connection."""
     if not is_user_logged_in():
-        return False  # Reject connection if not logged in
+        return False
 
     user = get_user_from_session()
     logger.info(f"Socket connected: {user['email']}")
@@ -404,7 +380,6 @@ def handle_disconnect():
 
 @socketio.on("join_game")
 def handle_join_game(data):
-    """Handle a user joining a game room."""
     if not is_user_logged_in():
         return
 
@@ -415,21 +390,17 @@ def handle_join_game(data):
         emit("error", {"data": "Room not found!"})
         return
 
-    # Join the Socket.IO room
     join_room(room_id)
 
-    # Add user to the game room if not already in
     if user["email"] not in active_game_rooms[room_id]["players"]:
         active_game_rooms[room_id]["players"].append(user["email"])
 
-    # Notify all users in the room
     emit("message", {
         "data": f"{user['name']} joined the game!",
         "user": user["email"],
         "timestamp": datetime.now().isoformat()
     }, room=room_id)
 
-    # Send current game state to the joining user
     emit("game_state", {
         "room_id": room_id,
         "players": active_game_rooms[room_id]["players"],
@@ -442,7 +413,6 @@ def handle_join_game(data):
 
 @socketio.on("leave_game")
 def handle_leave_game(data):
-    """Handle a user leaving a game room."""
     if not is_user_logged_in():
         return
 
@@ -453,21 +423,17 @@ def handle_leave_game(data):
         emit("error", {"data": "Room not found!"})
         return
 
-    # Leave the Socket.IO room
     leave_room(room_id)
 
-    # Remove user from the game room
     if user["email"] in active_game_rooms[room_id]["players"]:
         active_game_rooms[room_id]["players"].remove(user["email"])
 
-    # Notify all users in the room
     emit("message", {
         "data": f"{user['name']} left the game!",
         "user": user["email"],
         "timestamp": datetime.now().isoformat()
     }, room=room_id)
 
-    # Clean up if room is empty
     if not active_game_rooms[room_id]["players"]:
         logger.info(f"Game room {room_id} is now empty")
 
@@ -502,6 +468,24 @@ def handle_game_event(data):
     }, room=room_id)
 
     logger.info(f"Game event in room {room_id} by {user['email']}: {event_data}")
+
+@socketio.on("make_turn")
+def make_turn(data):
+    game_id = data['game_id']
+    room_id = data['room_id']
+    field_id = data['field_id']
+    foo = game_service.make_turn(game_id, field_id)
+    print(foo)
+    user = get_user_from_session()
+    # Render the template fragment
+    html = render_template(
+        "foo.html",
+        game=foo.get_state(),
+        user=session["user"]
+    )
+
+    # Send the rendered HTML back to the client
+    emit("game_update", {"html": html}, room=room_id)
 
 
 if __name__ == "__main__":

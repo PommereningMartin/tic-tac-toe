@@ -1,4 +1,6 @@
 import random
+import uuid
+from uuid import uuid4
 
 from board import Board
 from player import Player
@@ -7,10 +9,10 @@ from game_state import GameState
 
 class Game(object):
 
-    def __init__(self, game_id: str, ):
+    def __init__(self):
         self.player_1 = Player(1, 'X')
         self.player_2 = Player(2, 'O')
-        self.id: int = random.randint(1, 100)
+        self.id: str  = str(uuid.uuid4())
         # TODO: decided to use board or grid and use it all over the place
         self.board = Board(3, 3)
         self.current_turn = 0

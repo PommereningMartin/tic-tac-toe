@@ -2,7 +2,7 @@ from typing import TypedDict, List, NotRequired
 
 
 class GameState(TypedDict):
-    id: int
+    id: str
     player1Name: str
     player2Name: str
     grid: List
