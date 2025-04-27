@@ -4,7 +4,7 @@
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <value>
-          <list size="27">
+          <list size="36">
             <item index="0" class="java.lang.String" itemvalue="blinker" />
             <item index="1" class="java.lang.String" itemvalue="Werkzeug" />
             <item index="2" class="java.lang.String" itemvalue="itsdangerous" />
@@ -32,6 +32,15 @@
             <item index="24" class="java.lang.String" itemvalue="pyasn1" />
             <item index="25" class="java.lang.String" itemvalue="requests" />
             <item index="26" class="java.lang.String" itemvalue="google-auth" />
+            <item index="27" class="java.lang.String" itemvalue="mysqlclient" />
+            <item index="28" class="java.lang.String" itemvalue="Authlib" />
+            <item index="29" class="java.lang.String" itemvalue="filelock" />
+            <item index="30" class="java.lang.String" itemvalue="trove-classifiers" />
+            <item index="31" class="java.lang.String" itemvalue="build" />
+            <item index="32" class="java.lang.String" itemvalue="pip" />
+            <item index="33" class="java.lang.String" itemvalue="future" />
+            <item index="34" class="java.lang.String" itemvalue="typing_extensions" />
+            <item index="35" class="java.lang.String" itemvalue="setuptools" />
           </list>
         </value>
       </option>

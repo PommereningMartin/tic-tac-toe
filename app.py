@@ -322,7 +322,7 @@ def start_game():
     user = get_user_from_session()
     room_id = create_game_room(user["email"])
     logger.info(f"New game room created: {room_id} by {user['email']}")
-    return redirect(url_for("game_room", room_id=room_id))
+    return redirect(url_for("game_room", room_id=room_id, user=user))
 
 
 @app.route("/game/<room_id>")
@@ -338,7 +338,8 @@ def game_room(room_id):
     if user["email"] not in active_game_rooms[room_id]["players"]:
         active_game_rooms[room_id]["players"].append(user["email"])
 
-    game = game_service.new()
+    # create a new game for the room
+    game = game_service.new(room_id)
     return render_template("gameV2.html", room_id=room_id, user=user,game=game.get_state(), room_data=active_game_rooms[room_id])
 
 
@@ -436,13 +437,13 @@ def handle_leave_game(data):
 
     if not active_game_rooms[room_id]["players"]:
         logger.info(f"Game room {room_id} is now empty")
+        clean_inactive_rooms()
 
     logger.info(f"User {user['email']} left game room {room_id}")
 
 
 @socketio.on("game_event")
 def handle_game_event(data):
-    """Handle game events within a room."""
     if not is_user_logged_in():
         return
 
@@ -471,20 +472,16 @@ def handle_game_event(data):
 
 @socketio.on("make_turn")
 def make_turn(data):
-    game_id = data['game_id']
     room_id = data['room_id']
     field_id = data['field_id']
-    foo = game_service.make_turn(game_id, field_id)
-    print(foo)
-    user = get_user_from_session()
+    foo = game_service.make_turn(room_id, field_id).get_state()
+
     # Render the template fragment
     html = render_template(
         "foo.html",
-        game=foo.get_state(),
+        game=foo,
         user=session["user"]
     )
-
-    # Send the rendered HTML back to the client
     emit("game_update", {"html": html}, room=room_id)
 
 

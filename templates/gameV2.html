@@ -151,7 +151,7 @@
     // Leave the game room
     function leaveGame() {
         socket.emit("leave_game", { room_id: roomId });
-        window.location.href = "/";
+        window.location.href = "/dashboard";
     }
 
     // Handle page unload (browser close, refresh, etc.)

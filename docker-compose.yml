@@ -1,6 +1,6 @@
 services:
   db:
-    image: mysql:8.0.32
+    image: mysql:latest
     restart: unless-stopped
     ports:
       - '127.0.0.1:3306:3306'

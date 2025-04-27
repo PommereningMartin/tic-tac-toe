@@ -9,7 +9,7 @@ from game_state import GameState
 
 class Game(object):
 
-    def __init__(self):
+    def __init__(self, room_id: str):
         self.player_1 = Player(1, 'X')
         self.player_2 = Player(2, 'O')
         self.id: str  = str(uuid.uuid4())
@@ -18,6 +18,7 @@ class Game(object):
         self.current_turn = 0
         self.current_player: Player | None = None
         self.winner: str | None = None
+        self.room_id = room_id
 
     def get_state(self) -> GameState:
         current_player_name = ''

@@ -30,7 +30,7 @@
       <jdbc-url>jdbc:sqlite:project.sqlite3</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="test-db@localhost" uuid="f9b6e7dc-a385-49b2-8e1c-b5e109e14c36">
+    <data-source source="LOCAL" name="@localhost" uuid="f9b6e7dc-a385-49b2-8e1c-b5e109e14c36">
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
