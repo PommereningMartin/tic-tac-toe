@@ -1,10 +1,11 @@
+{% extends '_base.html' %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block content %}
     <title>Game Room</title>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -45,8 +46,6 @@
             margin: 4px 2px;
             cursor: pointer;
             border-radius: 5px;
-            width: 50px;
-            height: 50px;
         }
         .foo_button {
             width: 50px;
@@ -59,9 +58,37 @@
         .leave-button {
             background-color: #f44336;
         }
+
+        .messages_wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Adjust as needed */
+        }
+
+        .messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .input_area {
+            display: flex;
+            padding: 10px 0;
+        }
+
+        .input_area input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
+
 <div class="header">
     <h1>Game Room: {{ room_id[:8] }}...</h1>
     <div>
@@ -79,7 +106,7 @@
             <h1>gameId: {{ game['id'] }}</h1>
             <h1>winner: {{ game['winner'] }}</h1>
             {% set foo = game['id'] %}
-            {{ game['grid'] }}
+            <!-- {{ game['grid'] }} -->
             {% for row in game['grid'] %}
                 {% set rowIndex = loop.index -1 %}
                 <p>
@@ -97,72 +124,22 @@
             {% endfor %}
         </div>
     </div>
-    <button onclick="sendGameEvent()" class="button">Send Game Event</button>
 </div>
+        <h3>Game Messages</h3>
+        <div class="messages_wrapper">
+            <div id="messages" class="messages">
+                <!-- Messages will appear here -->
+            </div>
+            <div class="input_area">
+                <input id="foo" type="text">
+                <button onclick="sendGameEvent('{{ room_id }}', document.getElementById('foo').value )" class="button">Send Game Event</button>
+            </div>
+        </div>
+        <script>
+            const roomId = "{{ room_id }}";
+            joinGame(roomId);
+        </script>
+{% endblock content %}
 
-
-
-
-<h3>Game Messages</h3>
-<div id="messages" class="messages"></div>
-
-<script>
-    const socket = io();
-    const roomId = "{{ room_id }}";
-    const userId = "{{ user['id'] }}";
-
-    // Join the game room when page loads
-    socket.emit("join_game", { room_id: roomId });
-
-    // Listen for messages
-    socket.on("message", (data) => {
-        addMessage(data.data);
-    });
-
-    // Listen for game updates
-    socket.on("game_update", (data) => {
-        console.log(data);
-        document.getElementById("game-state-display").innerHTML = data.html;
-        // addMessage("Game Update: " + data.data);
-    });
-
-    // Listen for errors
-    socket.on("error", (data) => {
-        addMessage("Error: " + data.data);
-    });
-
-    // Helper function to add messages to the message area
-    function addMessage(message) {
-        const messagesDiv = document.getElementById("messages");
-        const newMessage = document.createElement("p");
-        newMessage.textContent = message;
-        messagesDiv.appendChild(newMessage);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
-
-    // Send a game event
-    function sendGameEvent() {
-        socket.emit("game_event", {
-            room_id: roomId,
-            event: "Player made a move!"
-        });
-    }
-
-    // Leave the game room
-    function leaveGame() {
-        socket.emit("leave_game", { room_id: roomId });
-        window.location.href = "/dashboard";
-    }
-
-    // Handle page unload (browser close, refresh, etc.)
-    window.addEventListener("beforeunload", () => {
-        socket.emit("leave_game", { room_id: roomId });
-    });
-
-    function makeTurn(id, gameId){
-        document.getElementById(id).disabled = true;
-        socket.emit("make_turn", {game_id: gameId, field_id: id, player_id: userId, room_id: roomId})
-    }
-</script>
 </body>
 </html>

@@ -4,97 +4,76 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-    />
-    <link
-            rel="stylesheet"
-            href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
-    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flask Social Login</title>
-    <script>
-        function createUser() {
-            const a = 'foo' //prompt('Pls enter Player1 name: ')
-            fetch('http://localhost:5000/createUser', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: undefined,
-            }).then(response => response.json())
-                .then(async response => {
-                    await updateDiv(undefined)
-                })
-        }
-
-        function clearPlayers() {
-            fetch('http://localhost:5000/clearPlayers', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: undefined,
-            }).then(response => response.json())
-                .then(async response => {
-                    await updateDiv(undefined)
-                })
-        }
-
-        function startGame(){
-            const a = 'foo' //prompt('Pls enter Player1 name: ')
-            const b = 'bar' //prompt('Pls enter Player2 name:')
-            const current = Math.floor(Math.random() * 2)+1
-            console.log(current)
-            fetch('http://localhost:5000/startGame', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ "player1Name": a, "player2Name":b, "currentPlayer": current }),
-            }).then(response => {
-                if (response.redirected) {
-                    window.location = response.url
-                } else {
-                    console.log(response)
-                }
-            })
-        }
-    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"></script>
-    <script type="text/javascript">
-        const socket = io.connect('http://' + document.domain + ':' + location.port);
+    <script>
+        const socket = io();
 
-        socket.on('connect', function () {
-            console.log('Connected to the server');
+
+
+        // Listen for messages
+        socket.on("message", (data) => {
+            addMessage(data.data);
         });
 
-        socket.on('response', function (data) {
-            const foo = document.getElementById("labelResult");
-            foo.value = data;
-            console.log('Server says: ' + data);
+        // Listen for game updates
+        socket.on("game_update", (data) => {
+            console.log(data);
+            document.getElementById("game-state-display").innerHTML = data.html;
         });
 
-        function sendMessage() {
-            const message = document.getElementById('message').value;
-            socket.emit('message', message);
+        // Listen for game updates
+        socket.on("text_update", (data) => {
+            addMessage(data.user_name,data.data);
+            document.getElementById('foo').value = null;
+        });
+
+        // Listen for errors
+        socket.on("error", (data) => {
+            addMessage("Error: " + data.data);
+        });
+
+        function joinGame(roomId) {
+            // Join the game room when page loads
+            socket.emit("join_game", { room_id: roomId });
+        }
+
+        // Helper function to add messages to the message area
+        function addMessage(userName, message) {
+            const messagesDiv = document.getElementById("messages");
+            const newMessage = document.createElement("p");
+            newMessage.textContent = message ? userName+': '+message : userName;
+            messagesDiv.appendChild(newMessage);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Send a game event
+        function sendGameEvent(roomId, text) {
+            socket.emit("game_event", {
+                room_id: roomId,
+                event: text
+            });
+        }
+
+        // Leave the game room
+        function leaveGame() {
+            socket.emit("leave_game", { room_id: roomId });
+            window.location.href = "/";
+        }
+
+        // Handle page unload (browser close, refresh, etc.)
+        window.addEventListener("beforeunload", () => {
+            socket.emit("leave_game", { room_id: roomId });
+        });
+
+        function makeTurn(id, gameId){
+            document.getElementById(id).disabled = true;
+            socket.emit("make_turn", {game_id: gameId, field_id: id, player_id: userId, room_id: roomId})
         }
     </script>
 </head>
-<body style="padding-top: 10%;">
-
+<body>
 {% block content %} {% endblock content %}
-
-<div style="text-align:center;">
-    {% if current_user.is_authenticated %}
-        <h1>You are logged in as {{current_user.username}}</h1>
-        <br><br>
-        <a href="{{url_for('logout')}}" class="btn btn-danger">Logout</a>
-    {% endif %}
-</div>
 </body>
 </html>
