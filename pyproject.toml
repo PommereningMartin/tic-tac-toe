@@ -1,7 +1,21 @@
 [project]
-name = "tic-tac-toe-flask"
+name = "python-flask-tic-tac-toe"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "authlib>=1.4.1",
+    "cryptography>=44.0.1",
+    "flask>=3.1.0",
+    "flask-cors>=5.0.0",
+    "flask-dance>=7.1.0",
+    "flask-login>=0.6.3",
+    "flask-mysqldb>=2.0.0",
+    "flask-socketio>=5.5.1",
+    "flask-sqlalchemy>=3.1.1",
+    "mysql-connector-python>=9.2.0",
+    "pymysql>=1.1.1",
+    "python-dotenv>=1.0.1",
+    "sqlalchemy>=2.0.38",
+]
